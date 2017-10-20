@@ -1,127 +1,233 @@
-> 翻译：Hawstein
-
-> 校对：numbbbbb
-
-# 特性
+# 特性（Attributes）
 -----------------
+
+> 1.0
+> 翻译：[Hawstein](https://github.com/Hawstein)
+> 校对：[numbbbbb](https://github.com/numbbbbb), [stanzhai](https://github.com/stanzhai)
+
+> 2.0
+> 翻译+校对：[KYawn](https://github.com/KYawn)
+
+> 2.1
+> 翻译：[小铁匠Linus](https://github.com/kevin833752)
 
 本页内容包括：
 
 - [声明特性](#declaration_attributes)
+- [Interface Builder 使用的声明特性](#declaration_attributes_used_by_interface_builder)
 - [类型特性](#type_attributes)
 
-特性提供了关于声明和类型的更多信息。在Swift中有两类特性，用于修饰声明的以及用于修饰类型的。例如，`required`特性，当应用于一个类的指定或便利初始化器声明时，表明它的每个子类都必须实现那个初始化器。再比如`noreturn`特性，当应用于函数或方法类型时，表明该函数或方法不会返回到它的调用者。
+特性提供了有关声明和类型的更多信息。在Swift中有两种特性，分别用于修饰声明和类型。
 
-通过以下方式指定一个特性：符号`@`后面跟特性名，如果包含参数，则把参数带上：
+您可以通过以下方式指定一个特性:符号`@`后跟特性的名称和特性接收的任何参数：
 
-```
-@attribute name
-@attribute name(attribute arguments)
-```
+> @ `特性名`
 
-有些声明特性通过接收参数来指定特性的更多信息以及它是如何修饰一个特定的声明的。这些特性的参数写在小括号内，它们的格式由它们所属的特性来定义。
+> @ `特性名`（`特性参数`）
+
+有些声明特性通过接收参数来指定特性的更多信息以及它是如何修饰某个特定的声明的。这些特性的参数写在圆括号内，它们的格式由它们所属的特性来定义。
 
 <a name="declaration_attributes"></a>
-## 声明特性
+##声明特性
+声明特性只能应用于声明。
 
-声明特性只能应用于声明。然而，你也可以将`noreturn`特性应用于函数或方法类型。
+`available`
 
-`assignment`
+将 `available` 特性用于声明时，表示该声明的生命周期与特定的平台和操作系统版本有关。
 
-该特性用于修饰重载了复合赋值运算符的函数。重载了复合赋值运算符的函数必需将它们的初始输入参数标记为`inout`。如何使用`assignment`特性的一个例子，请见：[复合赋值运算符]()。
+`available` 特性经常与参数列表一同出现，该参数列表至少有两个特性参数，参数之间由逗号分隔。这些参数由以下这些平台名字中的一个起头：
 
-`class_protocol`
+- iOS
+- iOSApplicationExtension
+- macOS
+- macOSApplicationExtension
+- watchOS
+- watchOSApplicationExtension
+- tvOS
+- tvOSApplicationExtension
 
-该特性用于修饰一个协议表明该协议只能被类类型采用[待改：adopted]。
+当然，你也可以用一个星号（*）来表示上面提到的所有平台。
+其余的参数，可以按照任何顺序出现，并且可以添加关于声明生命周期的附加信息，包括重要事件。
 
-如果你用`objc`特性修饰一个协议，`class_protocol`特性就会隐式地应用到该协议，因此无需显式地用`class_protocol`特性标记该协议。
+- `unavailable`参数表示该声明在指定的平台上是无效的。
+- `introduced` 参数表示指定平台从哪一版本开始引入该声明。格式如下：
 
-`exported`
+`introduced`=`版本号`
 
-该特性用于修饰导入声明，以此来导出已导入的模块，子模块，或当前模块的声明。如果另一个模块导入了当前模块，那么那个模块可以访问当前模块的导出项。
+*版本号*由一个或多个正整数构成，由句点分隔的。
 
-`final`
+- `deprecated`参数表示指定平台从哪一版本开始弃用该声明。格式如下：
 
-该特性用于修饰一个类或类中的属性，方法，以及下标成员。如果用它修饰一个类，那么这个类则不能被继承。如果用它修饰类中的属性，方法或下标，则表示在子类中，它们不能被重写。
+`deprecated`=`版本号`
 
-`lazy`
+可选的*版本号*由一个或多个正整数构成，由句点分隔的。省略版本号表示该声明目前已弃用，当弃用出现时无需给出任何有关信息。如果你省略了版本号，冒号（:）也可省略。
 
-该特性用于修饰类或结构体中的存储型变量属性，表示该属性的初始值最多只被计算和存储一次，且发生在第一次访问它时。如何使用`lazy`特性的一个例子，请见：[惰性存储型属性]()。
+- `obsoleted` 参数表示指定平台从哪一版本开始废弃该声明。当一个声明被废弃后，它就从平台中移除，不能再被使用。格式如下：
 
-`noreturn`
+`obsoleted`=`版本号`
 
-该特性用于修饰函数或方法声明，表明该函数或方法的对应类型，`T`，是`@noreturn T`。你可以用这个特性修饰函数或方法的类型，这样一来，函数或方法就不会返回到它的调用者中去。
+*版本号*由一个或多个正整数构成，由句点分隔的。
 
-对于一个没有用`noreturn`特性标记的函数或方法，你可以将它重写(override)为用该特性标记的。相反，对于一个已经用`noreturn`特性标记的函数或方法，你则不可以将它重写为没使用该特性标记的。相同的规则试用于当你在一个comforming类型中实现一个协议方法时。
+- `message` 参数用来提供文本信息。当使用被弃用或者被废弃的声明时，编译器会抛出警告或错误信息。格式如下：
 
-`NSCopying`
+`message`=`信息内容`
 
-该特性用于修饰一个类的存储型变量属性。该特性将使属性的setter与属性值的一个副本合成，由`copyWithZone`方法返回，而不是属性本身的值。该属性的类型必需遵循`NSCopying`协议。
+信息内容由一个字符串构成。
 
-`NSCopying`特性的行为与Objective-C中的`copy`特性相似。
+- `renamed` 参数用来提供文本信息，用以表示被重命名的声明的新名字。当使用声明的旧名字时，编译器会报错提示新名字。格式如下：
 
-`NSManaged`
+`renamed`=`新名字`
 
-该特性用于修饰`NSManagedObject`子类中的存储型变量属性，表明属性的存储和实现由Core Data在运行时基于相关实体描述动态提供。
+新名字由一个字符串构成。
 
-`objc`
+你可以将`renamed` 参数和 `unavailable` 参数以及类型别名声明组合使用，以此向用户表示某个声明已经被重命名。当某个声明的名字在一个框架或者库的不同发布版本间发生变化时，这会相当有用。
 
-该特性用于修饰任意可以在Objective-C中表示的声明，比如，非嵌套类，协议，类和协议中的属性和方法（包含getter和setter），初始化器，析构器，以下下标。`objc`特性告诉编译器该声明可以在Objective-C代码中使用。
-
-如果你将`objc`特性应用于一个类或协议，它也会隐式地应用于那个类或协议的成员。对于标记了`objc`特性的类，编译器会隐式地为它的子类添加`objc`特性。标记了`objc`特性的协议不能继承自没有标记`objc`的协议。
-
-`objc`特性有一个可选的参数，由标记符组成。当你想把`objc`所修饰的实体以一个不同的名字暴露给Objective-C，你就可以使用这个特性参数。你可以使用这个参数来命名类，协议，方法，getters，setters，以及初始化器。下面的例子把`ExampleClass`中`enabled`属性的getter暴露给Objective-C，名字是`isEnabled`，而不是它原来的属性名。
-
-```
-@objc
-class ExampleClass {
-    var enabled: Bool {
-    @objc(isEnabled) get {
-        // Return the appropriate value
-    }
-    }
+```swift
+// 首发版本
+protocol MyProtocol {
+// 这里是协议定义
 }
 ```
 
-`optional`
+```swift
+// 后续版本重命名了 MyProtocol
+protocol MyRenamedProtocol {
+// 这里是协议定义
+}
+@available(*, unavailable, renamed:"MyRenamedProtocol")
+typealias MyProtocol = MyRenamedProtocol
+```
 
-用该特性修饰协议的属性，方法或下标成员，表示实现这些成员并不需要一致性类型（conforming type）。
+你可以在某个声明上使用多个 `available` 特性，以指定该声明在不同平台上的可用性。编译器只有在当前目标平台和 `available` 特性中指定的平台匹配时，才会使用 `available` 特性。
 
-你只能用`optional`特性修饰那些标记了`objc`特性的协议。因此，只有类类型可以adopt和comform to那些包含可选成员需求的协议。更多关于如何使用`optional`特性以及如何访问可选协议成员的指导，例如，当你不确定一个conforming类型是否实现了它们，请见：[可选协议需求]()。
+如果 `available` 特性除了平台名称参数外，只指定了一个 `introduced` 参数，那么可以使用以下简写语法代替：
 
-`required`
+@available（平台名称 版本号，*）
 
-用该特性修饰一个类的指定或便利初始化器，表示该类的所有子类都必需实现该初始化器。
+`available` 特性的简写语法可以简明地表达出声明在多个平台上的可用性。尽管这两种形式在功能上是相同的，但请尽可能地使用简写语法形式。
 
-加了该特性的指定初始化器必需显式地实现，而便利初始化器既可显式地实现，也可以在子类实现了超类所有指定初始化器后继承而来（或者当子类使用便利初始化器重写了指定初始化器）。
+```swift
+@available(iOS 10.0, macOS 10.12, *)
+class MyClass {
+// 这里是类定义
+}
+```
 
-### Interface Builder使用的声明特性
+`discardableResult`
 
-Interface Builder特性是Interface Builder用来与Xcode同步的声明特性。Swift提供了以下的Interface Builder特性：`IBAction`，`IBDesignable`，`IBInspectable`，以及`IBOutlet`。这些特性与Objective-C中对应的特性在概念上是相同的。
+该特性用于的函数或方法声明,以抑制编译器中 函数或方法的返回值被调而没有使用其结果的警告。
 
-`IBOutlet`和`IBInspectable`用于修饰一个类的属性声明；`IBAction`特性用于修饰一个类的方法声明；`IBDesignable`用于修饰类的声明。
+`GKInspectable`
+
+应用此属性，暴露一个自定义GameplayKit组件属性给SpriteKit编辑器UI。
+
+`objc`
+
+该特性用于修饰任何可以在 Objective-C 中表示的声明。比如，非嵌套类、协议、非泛型枚举（仅限原始值为整型的枚举）、类和协议中的属性和方法（包括存取方法）、构造器、析构器以及下标运算符。`objc` 特性告诉编译器这个声明可以在 Objective-C 代码中使用。
+
+标有 `objc` 特性的类必须继承自 Objective-C 中定义的类。如果你将 `objc` 特性应用于一个类或协议，它也会隐式地应用于类或协议中兼容 Objective-C 的成员。对于标记了 `objc` 特性的类，编译器会隐式地为它的子类添加 `objc` 特性。标记了 `objc` 特性的协议不能继承没有标记 `objc` 的协议。
+
+如果你将 `objc` 特性应用于枚举，每一个枚举用例都会以枚举名称和用例名称组合的方式暴露在 Objective-C 代码中。例如，在 `Planet` 枚举中有一个名为 `Venus` 的用例，该用例暴露在 Objective-C 代码中时叫做 `PlanetVenus`。
+
+`objc` 特性有一个可选的参数，由标识符构成。当你想把 objc 所修饰的实体以一个不同的名字暴露给 Objective-C 时，你就可以使用这个特性参数。你可以使用这个参数来命名类、枚举类型、枚举用例、协议、方法、存取方法以及构造器。下面的例子把 `ExampleClass` 中的 `enabled` 属性的取值方法暴露给 Objective-C，名字是 `isEnabled`，而不是它原来的属性名。
+
+```swift
+@objc
+class ExampleClass: NSObject {
+var enabled: Bool {
+@objc(isEnabled) get {
+// 返回适当的值        }
+}
+}
+```
+`nonobjc`
+
+该特性用于方法、属性、下标、或构造器的声明，这些声明本可以在 Objective-C 代码中使用，而使用 `nonobjc` 特性则告诉编译器这个声明不能在 Objective-C 代码中使用。
+
+可以使用 `nonobjc` 特性解决标有 `objc` 的类中桥接方法的循环问题，该特性还允许对标有 `objc` 的类中的构造器和方法进行重载。
+
+标有 `nonobjc` 特性的方法不能重写标有 `objc` 特性的方法。然而，标有 `objc` 特性的方法可以重写标有 `nonobjc` 特性的方法。同样，标有 `nonobjc` 特性的方法不能满足标有 `@objc` 特性的协议中的方法要求。
+
+`NSApplicationMain`
+
+在类上使用该特性表示该类是应用程序委托类，使用该特性与调用 `NSApplicationMain`(\_:_:) 函数并且把该类的名字作为委托类的名字传递给函数的效果相同。
+
+如果你不想使用这个特性，可以提供一个 main.swift 文件，并在代码**顶层**调用`NSApplicationMain`(\_:_:) 函数,如下所示:
+
+```swift
+import AppKit
+NSApplicationMain(CommandLine.argc, CommandLine.unsafeArgv)
+```
+`NSCopying`
+
+该特性用于修饰一个类的存储型变量属性。该特性将使属性的设值方法使用传入值的副本进行赋值，这个值由传入值的 `copyWithZone`(\_:) 方法返回。该属性的类型必需符合 `NSCopying` 协议。
+
+`NSCopying` 特性的行为与 Objective-C 中的 `copy` 特性相似。
+
+`NSManaged`
+
+该特性用于修饰 `NSManagedObject` 子类中的实例方法或存储型变量属性，表明它们的实现由 `Core Data` 在运行时基于相关实体描述动态提供。对于标记了 `NSManaged` 特性的属性，`Core Data` 也会在运行时为其提供存储。应用这个特性也意味着`objc`特性。
+
+`testable`
+
+在导入允许测试的编译模块时，该特性用于修饰 `import` 声明，这样就能访问被导入模块中的任何标有 `internal` 访问级别修饰符的实体，犹如它们被标记了 `public` 访问级别修饰符。测试也可以访问使用`internal`或者`public`访问级别修饰符标记的类和类成员,就像它们是`open`访问修饰符声明的。
+
+`UIApplicationMain`
+
+在类上使用该特性表示该类是应用程序委托类，使用该特性与调用 `UIApplicationMain`函数并且把该类的名字作为委托类的名字传递给函数的效果相同。
+
+如果你不想使用这个特性，可以提供一个 main.swift 文件，并在代码顶层调用 `UIApplicationMain`(\_:\_:\_:) 函数。比如，如果你的应用程序使用一个继承于 UIApplication 的自定义子类作为主要类，你可以调用 `UIApplicationMain`(\_:\_:\_:) 函数而不是使用该特性。
+
+<a name="declaration_attributes_used_by_interface_builder"></a>
+###Interface Builder 使用的声明特性
+`Interface Builder` 特性是 `Interface Builder` 用来与 Xcode 同步的声明特性。`Swift` 提供了以下的 `Interface Builder` 特性：`IBAction`，`IBOutlet`，`IBDesignable`，以及`IBInspectable` 。这些特性与 Objective-C 中对应的特性在概念上是相同的。
+
+`IBOutlet` 和 `IBInspectable` 用于修饰一个类的属性声明，`IBAction` 特性用于修饰一个类的方法声明，`IBDesignable` 用于修饰类的声明。
+
+`IBAction` 和 `IBOutlet` 特性都意味着`objc`特性。
 
 <a name="type_attributes"></a>
-## 类型特性
+##类型特性
+类型特性只能用于修饰类型。
 
-类型特性只能用于修饰类型。然而，你也可以用`noreturn`特性去修饰函数或方法声明。
+`autoclosure`
 
-`auto_closure`
+这个特性通过把表达式自动封装成无参数的闭包来延迟表达式的计算。它可以修饰类型为返回表达式结果类型的无参数函数类型的函数参数。关于如何使用 autoclosure 特性的例子，请参阅 [自动闭包](http://wiki.jikexueyuan.com/project/swift/chapter2/07_Closures.html/) 和 [函数类型](http://wiki.jikexueyuan.com/project/swift/chapter3/03_Types.html)。
 
-这个特性通过自动地将表达式封闭到一个无参数闭包中来延迟表达式的求值。使用该特性修饰无参的函数或方法类型，返回表达式的类型。一个如何使用`auto_closure`特性的例子，见[函数类型]()
+`convention`
+该特性用于修饰函数类型，它指出了函数调用的约定。
 
-`noreturn`
+convention 特性总是与下面的参数之一一起出现。
 
-该特性用于修饰函数或方法的类型，表明该函数或方法不会返回到它的调用者中去。你也可以用它标记函数或方法的声明，表示函数或方法的相应类型，`T`，是`@noreturn T`。
+- `swift` 参数用于表示一个 Swift 函数引用。这是 Swift 中函数值的标准调用约定。
 
-> 特性的语法
-> attribute -> @ [attribute-name]() [attribute-argument-clause]()opt
-> attribute-name -> [identifier]()
-> attribute-argument-clause -> ( [balanced-tokens]()opt )
-> attributes -> [attribute]() [attributes]()opt
-> balanced-tokens -> [balanced-token]() [balanced-tokens]()opt
-> balanced-token -> ( [balanced-tokens]()opt )
-> balanced-token -> [ [balanced-tokens]()opt ]
-> balanced-token -> { [balanced-tokens]()opt }
-> balanced-token -> 任意标识符，关键字，字面量，或运算符
-> balanced-token -> 任意标点符号，除了(, ), [, ], {, 或 }
+- `block` 参数用于表示一个 Objective-C 兼容的块引用。函数值会作为一个块对象的引用，块是一种 `id` 兼容的 Objective-C 对象，其中嵌入了调用函数。调用函数使用 C 的调用约定。
+
+- `c` 参数用于表示一个 C 函数引用。函数值没有上下文，不具备捕获功能，同样使用 C 的调用约定。
+
+使用 C 函数调用约定的函数也可用作使用 Objective-C 块调用约定的函数，同时使用 Objective-C 块调用约定的函数也可用作使用 Swift 函数调用约定的函数。然而，只有非泛型的全局函数、局部函数以及未捕获任何局部变量的闭包，才可以被用作使用 C 函数调用约定的函数。
+
+`escaping`
+在函数或者方法声明上使用该特性，它表示参数将不会被存储以供延迟执行，这将确保参数不会超出函数调用的生命周期。在使用 `escaping` 声明特性的函数类型中访问属性和方法时不需要显式地使用 `self.`。关于如何使用 `escaping` 特性的例子，请参阅 [逃逸闭包](http://wiki.jikexueyuan.com/project/swift/chapter2/07_Closures.html)。
+
+>特性语法
+
+> *特性 *→ @ <font color = 0x3386c8>特性名 特性参数子句</font><sub>可选</sub>
+
+> *特性名* → <font color = 0x3386c8>标识符
+
+> *特性参数子句* → ( <font color = 0x3386c8>均衡令牌列表</font><sub>可选</sub> )
+
+> *特性列表* → <font color = 0x3386c8>特性 特性列表</font><sub>可选</sub>
+
+> *均衡令牌列表* → <font color = 0x3386c8>均衡令牌 均衡令牌列表</font><sub>可选</sub>
+
+> *均衡令牌* → ( <font color = 0x3386c8>均衡令牌列表</font><sub>可选</sub> )
+
+> *均衡令牌* → [ <font color = 0x3386c8>均衡令牌列表</font><sub>可选</sub> ]
+
+> *均衡令牌* → { <font color = 0x3386c8>均衡令牌列表</font><sub>可选</sub>}
+
+> *均衡令牌* → 任意标识符，关键字，字面量或运算符
+
+> *均衡令牌* → 任意标点除了 (，)，[，]，{，或 }
